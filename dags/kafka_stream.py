@@ -10,7 +10,7 @@ def get_data():
     import requests
 
     res = requests.get("https://randomuser.me/api/")
-    res.json()
+    res = res.json()
     res = res["results"][0]
 
     return res
