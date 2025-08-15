@@ -86,15 +86,15 @@ def create_spark_connection():
             SparkSession.builder.appName("SparkDataStreaming")
             .config(
                 "spark.jars.packages",
-                "com.datastax.spark:spark-cassandra-connector_2.13:3.41",
+                "com.datastax.spark:spark-cassandra-connector_2.13:3.4.1,"
                 "org.apache.spark:spark-sql-kafka-0-10_2.13:3.4.1",
             )
             .config("spark.cassandra.connection.host", "localhost")
             .getOrCreate()
         )
 
-        s_conn.sparkContext.setLogLevel("Error")
-        logging.info("Spark connection create successfully")
+        s_conn.sparkContext.setLogLevel("ERROR")
+        logging.info("Spark connection created successfully!")
     except Exception as e:
         logging.error(f"Couldn't create the spark session due to exception {e}")
 
@@ -120,12 +120,14 @@ def connect_to_kafka(spark_conn):
 
 def create_cassandra_connection():
     try:
+        # connecting to the cassandra cluster
         cluster = Cluster(["localhost"])
-        cassandra_session = cluster.connect()
 
-        return cassandra_session
+        cas_session = cluster.connect()
+
+        return cas_session
     except Exception as e:
-        logging.error(f"Could not create cassandra session due to {e}")
+        logging.error(f"Could not create cassandra connection due to {e}")
         return None
 
 
@@ -161,7 +163,7 @@ if __name__ == "__main__":
     spark_conn = create_spark_connection()
 
     if spark_conn is not None:
-        # connect to kafka
+        # connect to kafka with spark connection
         spark_df = connect_to_kafka(spark_conn)
         selection_df = create_selection_df_from_kafka(spark_df)
         session = create_cassandra_connection()
@@ -170,7 +172,8 @@ if __name__ == "__main__":
             create_keyspace(session)
             create_table(session)
 
-            # insert data
+            logging.info("Streaming is being started...")
+
             streaming_query = (
                 selection_df.writeStream.format("org.apache.spark.sql.cassandra")
                 .option("checkpointLocation", "/tmp/checkpoint")
