@@ -1,9 +1,10 @@
+import uuid
 from datetime import datetime
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-default_args = {"owner": "babuush", "start_date": datetime(2025, 8, 11, 14, 00)}
+default_args = {"owner": "babuush", "start_date": datetime(2025, 8, 15, 15, 00)}
 
 
 def get_data():
@@ -19,6 +20,7 @@ def get_data():
 def format_data(res):
     data = {}
     location = res["location"]
+    data["id"] = uuid.uuid4()
     data["first_name"] = res["name"]["first"]
     data["last_name"] = res["name"]["last"]
     data["gender"] = res["gender"]
