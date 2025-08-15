@@ -8,7 +8,12 @@ from pyspark.sql import SparkSession
 
 
 def create_keyspace(session):
-    pass
+    session.execute("""
+        CREATE KEYSPACE IF NOT EXISTS spark_streams
+        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
+    """)
+
+    print("Keyspace created successfully!")
 
 
 def create_table(session):
