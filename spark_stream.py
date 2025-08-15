@@ -1,7 +1,6 @@
 import logging
 
-#
-# from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster
 from pyspark.sql import SparkSession
 
 # from pyspark.sql.functions import from_json, col
@@ -44,8 +43,23 @@ def create_spark_connection():
 
 
 def create_cassandra_connection():
-    pass
+    try:
+        cluster = Cluster(["localhost"])
+        cassandra_session = cluster.connect()
+
+        return cassandra_session
+    except Exception as e:
+        logging.error(f"Could not create cassandra session due to {e}")
+        return None
 
 
 if __name__ == "__main__":
+    # create spark connection
     spark_conn = create_spark_connection()
+
+    if spark_conn is not None:
+        session = create_cassandra_connection()
+
+        if session is not None:
+            create_keyspace(session)
+            create_table(session)
