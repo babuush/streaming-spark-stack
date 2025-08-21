@@ -1,7 +1,7 @@
 # streaming-spark-stack
 
 ## Introduction & Learning Goals
-This repository is my personal learning project where I practice building an end-to-end data engineering pipeline that demonstrates the flow of data from ingestion to streaming, processing, and finally storage, all within a containerized environment.. (inspired by [this repository](https://github.com/airscholar/e2e-data-engineering)) 
+This repository is my personal learning project where I practice building an end-to-end data engineering pipeline that demonstrates the flow of data from ingestion to streaming, processing, and finally storage, all within a containerized environment. (inspired by [this repository](https://github.com/airscholar/e2e-data-engineering)) 
 
 And I aim to learn:
 - Building and orchestrating pipelines with Apache Airflow
@@ -14,11 +14,12 @@ And I aim to learn:
 ## System Architecture
 
 Components in this project:
-- Apache Airflow – Orchestrates the pipeline and stores raw data in PostgreSQL
-- Apache Kafka + Zookeeper – Backbone for real-time data streaming
-- Control Center & Schema Registry – For Kafka monitoring and schema management
-- Apache Spark – Processes the streamed data
-- Cassandra – Stores the final processed data
+- Data Source: We use `randomuser.me` API to generate random user data for our pipeline.
+- Apache Airflow: Orchestrates the pipeline and stores raw data in PostgreSQL
+- Apache Kafka + Zookeeper: Backbone for real-time data streaming
+- Control Center & Schema Registry: For Kafka monitoring and schema management
+- Apache Spark: Processes the streamed data
+- Cassandra: Stores the final processed data
 
 Stack Overview: Airflow, Python, Kafka, Zookeeper, Spark, Cassandra, PostgreSQL, Docker
 
