@@ -13,6 +13,8 @@ And I aim to learn:
 
 ## System Architecture
 
+![System Architecture](https://github.com/babuush/streaming-spark-stack/blob/8a7147158e64c1da01bcf6960124d522d3e34c05/system_arch.png)
+
 Components in this project:
 - Data Source: We use `randomuser.me` API to generate random user data for our pipeline.
 - Apache Airflow: Orchestrates the pipeline and stores raw data in PostgreSQL
