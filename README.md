@@ -5,7 +5,7 @@ This repository is my personal learning project where I practice building an end
 
 And I aim to learn:
 - Building and orchestrating pipelines with Apache Airflow
-- Real-time data streaming using Apache Kafka (KRaft mode — no Zookeeper)
+- Real-time data streaming using Apache Kafka (KRaft mode, no Zookeeper)
 - Scalable data processing with Apache Spark
 - Using PostgreSQL for Airflow metadata storage and Cassandra for processed data
 - Containerizing an entire data stack with Docker Compose
@@ -17,7 +17,7 @@ And I aim to learn:
 Components in this project:
 - **Data Source**: `randomuser.me` API generates random user data for the pipeline.
 - **Apache Airflow**: Orchestrates the pipeline and stores metadata in PostgreSQL.
-- **Apache Kafka (KRaft)**: Backbone for real-time data streaming — no Zookeeper required.
+- **Apache Kafka (KRaft)**: Backbone for real-time data streaming, with no Zookeeper required.
 - **Control Center & Schema Registry**: Kafka monitoring and schema management.
 - **Apache Spark**: Processes the streamed data (Spark 4.0).
 - **Cassandra**: Stores the final processed data.
@@ -53,8 +53,8 @@ Stack: Airflow 3.1.8, Python 3.12, Kafka (KRaft), Spark 4.0, Cassandra, PostgreS
     - Spark Master UI: http://localhost:9090
 
 5. Trigger the `user_automation` DAG from the Airflow UI. It runs two tasks:
-    - `stream_data_from_api` — produces 60s worth of fake users to the `users_created` Kafka topic.
-    - `stream_to_cassandra` — submits `spark_stream.py` to the Spark cluster via `SparkSubmitOperator`, which drains the Kafka topic into the `spark_streams.created_users` Cassandra table (using `Trigger.AvailableNow`, so it exits when the backlog is clear).
+    - `stream_data_from_api` produces 60s worth of fake users to the `users_created` Kafka topic.
+    - `stream_to_cassandra` submits `spark_stream.py` to the Spark cluster via `SparkSubmitOperator`, which drains the Kafka topic into the `spark_streams.created_users` Cassandra table (using `Trigger.AvailableNow`, so it exits when the backlog is clear).
 
 6. Verify the data landed in Cassandra:
     ```bash
