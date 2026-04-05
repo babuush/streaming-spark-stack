@@ -2,7 +2,8 @@ import uuid
 from datetime import datetime
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 default_args = {"owner": "babuush", "start_date": datetime(2025, 8, 15, 15, 00)}
 
@@ -64,9 +65,30 @@ def stream_data():
 with DAG(
     "user_automation",
     default_args=default_args,
-    schedule_interval="@daily",
+    schedule="@daily",
     catchup=False,
 ) as dag:
-    streaming_task = PythonOperator(
+    produce_to_kafka = PythonOperator(
         task_id="stream_data_from_api", python_callable=stream_data
     )
+
+    # Drains the Kafka backlog into Cassandra using Structured Streaming with
+    # Trigger.AvailableNow, so the task terminates once the current batch of
+    # messages has been processed (instead of running forever).
+    stream_to_cassandra = SparkSubmitOperator(
+        task_id="stream_to_cassandra",
+        application="/opt/airflow/spark_stream.py",
+        conn_id="spark_default",
+        packages=(
+            "com.datastax.spark:spark-cassandra-connector_2.13:3.5.1,"
+            "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0"
+        ),
+        conf={
+            "spark.jars.ivy": "/tmp/.ivy2",
+            "spark.driver.extraJavaOptions": "-Djava.net.preferIPv4Stack=true",
+            "spark.executor.extraJavaOptions": "-Djava.net.preferIPv4Stack=true",
+        },
+        verbose=False,
+    )
+
+    produce_to_kafka >> stream_to_cassandra

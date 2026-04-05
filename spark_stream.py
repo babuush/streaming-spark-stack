@@ -181,6 +181,7 @@ if __name__ == "__main__":
                 .option("checkpointLocation", "/tmp/checkpoint")
                 .option("keyspace", "spark_streams")
                 .option("table", "created_users")
+                .trigger(availableNow=True)
                 .start()
             )
 
