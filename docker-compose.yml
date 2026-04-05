@@ -88,25 +88,27 @@ services:
       retries: 5
 
   api-server:
-    image: apache/airflow:3.1.8-python3.12
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: streaming-spark-stack/airflow:3.1.8
     command: api-server
     depends_on:
       postgres:
         condition: service_healthy
+    env_file: .env
     environment:
       - LOAD_EX=n
       - EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AIRFLOW__API__SECRET_KEY=this_is_a_very_secured_key
-      - AIRFLOW__API_AUTH__JWT_SECRET=shared_jwt_secret_for_local_dev_only
       - _AIRFLOW_DB_MIGRATE=true
-      - _PIP_ADDITIONAL_REQUIREMENTS=kafka-python-ng==2.2.3
     logging:
       options:
         max-size: 10m
         max-file: "3"
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./spark_stream.py:/opt/airflow/spark_stream.py
     ports:
       - "8080:8080"
     healthcheck:
@@ -118,45 +120,40 @@ services:
       - confluent
 
   scheduler:
-    image: apache/airflow:3.1.8-python3.12
+    image: streaming-spark-stack/airflow:3.1.8
     command: scheduler
     depends_on:
       api-server:
         condition: service_healthy
+    env_file: .env
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./spark_stream.py:/opt/airflow/spark_stream.py
     environment:
       - LOAD_EX=n
       - EXECUTOR=LocalExecutor
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AIRFLOW__API__SECRET_KEY=this_is_a_very_secured_key
-      - AIRFLOW__API_AUTH__JWT_SECRET=shared_jwt_secret_for_local_dev_only
       - AIRFLOW__CORE__EXECUTION_API_SERVER_URL=http://api-server:8080/execution/
-      - _PIP_ADDITIONAL_REQUIREMENTS=kafka-python-ng==2.2.3
     networks:
       - confluent
 
   dag-processor:
-    image: apache/airflow:3.1.8-python3.12
+    image: streaming-spark-stack/airflow:3.1.8
     command: dag-processor
     depends_on:
       api-server:
         condition: service_healthy
+    env_file: .env
     volumes:
       - ./dags:/opt/airflow/dags
     environment:
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-      - AIRFLOW__API__SECRET_KEY=this_is_a_very_secured_key
-      - _PIP_ADDITIONAL_REQUIREMENTS=kafka-python-ng==2.2.3
     networks:
       - confluent
 
   postgres:
     image: postgres:14.0
-    environment:
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
+    env_file: .env
     logging:
       options:
         max-size: 10m

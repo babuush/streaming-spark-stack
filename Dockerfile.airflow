@@ -1,0 +1,15 @@
+FROM apache/airflow:3.1.8-python3.12
+
+# Install Java (needed for spark-submit) and procps (ps for Airflow task monitoring)
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends default-jre-headless procps \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python deps: Kafka client for the DAG + Spark provider/pyspark for SparkSubmitOperator
+USER airflow
+RUN pip install --no-cache-dir \
+    kafka-python-ng==2.2.3 \
+    apache-airflow-providers-apache-spark==5.3.3 \
+    pyspark==4.0.0

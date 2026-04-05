@@ -32,12 +32,18 @@ Stack: Airflow 3.1.8, Python 3.12, Kafka (KRaft), Spark 4.0, Cassandra, PostgreS
     cd streaming-spark-stack
     ```
 
-2. Spin up all services with Docker Compose:
+2. Create your local `.env` from the example (`.env` is git-ignored; these defaults are local-dev only, do not reuse them elsewhere):
     ```bash
-    docker compose up -d
+    cp .env.example .env
     ```
 
-3. Wait for services to be healthy, then get the generated Airflow admin password from logs:
+3. Spin up all services with Docker Compose (first run builds the custom Airflow image):
+    ```bash
+    docker compose up -d --build
+    ```
+    > Requires Docker Desktop with **≥ 6 GB** memory allocated.
+
+4. Wait for services to be healthy, then get the generated Airflow admin password from logs:
     ```bash
     docker compose logs api-server | grep "Password for user"
     ```
@@ -46,13 +52,13 @@ Stack: Airflow 3.1.8, Python 3.12, Kafka (KRaft), Spark 4.0, Cassandra, PostgreS
     - Kafka Control Center: http://localhost:9021
     - Spark Master UI: http://localhost:9090
 
-4. Trigger the `user_automation` DAG from the Airflow UI to start producing data to Kafka.
+5. Trigger the `user_automation` DAG from the Airflow UI. It runs two tasks:
+    - `stream_data_from_api` — produces 60s worth of fake users to the `users_created` Kafka topic.
+    - `stream_to_cassandra` — submits `spark_stream.py` to the Spark cluster via `SparkSubmitOperator`, which drains the Kafka topic into the `spark_streams.created_users` Cassandra table (using `Trigger.AvailableNow`, so it exits when the backlog is clear).
 
-5. Run the Spark streaming job to consume from Kafka and write to Cassandra:
+6. Verify the data landed in Cassandra:
     ```bash
-    docker exec -it <spark-master-container> spark-submit \
-      --packages com.datastax.spark:spark-cassandra-connector_2.13:3.5.1,org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 \
-      spark_stream.py
+    docker exec cassandra cqlsh -e "SELECT COUNT(*) FROM spark_streams.created_users;"
     ```
 
 ## Services & Ports
