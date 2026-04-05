@@ -87,10 +87,10 @@ def create_spark_connection():
             SparkSession.builder.appName("SparkDataStreaming")
             .config(
                 "spark.jars.packages",
-                "com.datastax.spark:spark-cassandra-connector_2.13:3.4.1,"
-                "org.apache.spark:spark-sql-kafka-0-10_2.13:3.4.1",
+                "com.datastax.spark:spark-cassandra-connector_2.13:3.5.1,"
+                "org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0",
             )
-            .config("spark.cassandra.connection.host", "localhost")
+            .config("spark.cassandra.connection.host", "cassandra")
             .getOrCreate()
         )
 
@@ -107,7 +107,7 @@ def connect_to_kafka(spark_conn):
     try:
         spark_df = (
             spark_conn.readStream.format("kafka")
-            .option("kafka.bootstrap.servers", "localhost:9092")
+            .option("kafka.bootstrap.servers", "broker:29092")
             .option("subscribe", "users_created")
             .option("startingOffsets", "earliest")
             .load()
@@ -122,7 +122,7 @@ def connect_to_kafka(spark_conn):
 def create_cassandra_connection():
     try:
         # connecting to the cassandra cluster
-        cluster = Cluster(["localhost"])
+        cluster = Cluster(["cassandra"])
 
         cas_session = cluster.connect()
 
@@ -143,6 +143,7 @@ def create_selection_df_from_kafka(spark_df):
             StructField("post_code", StringType(), False),
             StructField("email", StringType(), False),
             StructField("username", StringType(), False),
+            StructField("dob", StringType(), False),
             StructField("registered_date", StringType(), False),
             StructField("phone", StringType(), False),
             StructField("picture", StringType(), False),
