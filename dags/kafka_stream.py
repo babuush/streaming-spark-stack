@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from airflow import DAG
-from airflow.operators.python import PythonOperator
+from airflow.providers.standard.operators.python import PythonOperator
 
 default_args = {"owner": "babuush", "start_date": datetime(2025, 8, 15, 15, 00)}
 
@@ -64,7 +64,7 @@ def stream_data():
 with DAG(
     "user_automation",
     default_args=default_args,
-    schedule_interval="@daily",
+    schedule="@daily",
     catchup=False,
 ) as dag:
     streaming_task = PythonOperator(
